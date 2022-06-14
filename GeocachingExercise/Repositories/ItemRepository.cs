@@ -3,6 +3,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 
 namespace GeocachingExercise.Repositories
 {
@@ -39,13 +40,15 @@ namespace GeocachingExercise.Repositories
                     {
                         while (reader.Read())
                         {
+                           
+
                             activeItems.Add(new Item()
                             {
                                 Id = reader.GetInt32(reader.GetOrdinal("Id")),
                                 Name = reader.GetString(reader.GetOrdinal("Name")),
                                 CacheId = reader.GetInt32(reader.GetOrdinal("CacheId")),
-                                ActiveStartDate = reader.GetString(reader.GetOrdinal("ActiveStartDate")),
-                                ActiveEndDate = reader.GetString(reader.GetOrdinal("ActiveEndDate"))
+                                ActiveStartDate = reader.GetDateTime(reader.GetOrdinal("ActiveStartDate")).ToString("MM-dd-yyyy"),
+                                ActiveEndDate = reader.GetDateTime(reader.GetOrdinal("ActiveEndDate")).ToString("MM-dd-yyyy")
                             });
                         }
 
@@ -57,6 +60,24 @@ namespace GeocachingExercise.Repositories
 
         public void AddItem(Item item)
         {
+           if (!Regex.IsMatch(item.ActiveStartDate, "^[0-9][0-9]-[0-9][0-9]-[0-9][0-9][0-9][0-9]$"))
+            {
+                DateTime tmpDate = DateTime.ParseExact(item.ActiveStartDate, "MM/dd/yyyy", null);
+                item.ActiveStartDate = tmpDate.ToString("MM-dd-yyyy");
+            }
+
+            if (!Regex.IsMatch(item.ActiveEndDate, "^[0-9][0-9]-[0-9][0-9]-[0-9][0-9][0-9][0-9]$"))
+            {
+                var tmpDate = DateTime.ParseExact(item.ActiveEndDate, "MM/dd/yyyy", null);
+                item.ActiveEndDate = tmpDate.ToString("MM-dd-yyyy");
+            }
+                
+
+            if (item.CacheId == 0)
+            {
+                item.CacheId = null;
+            }
+
             using (var conn = Connection)
             {
                 conn.Open();
@@ -147,8 +168,8 @@ namespace GeocachingExercise.Repositories
                         if (reader.Read())
                         {
                         
-                            var actDate = reader.GetDateTime(reader.GetOrdinal("ActiveStartDate")).ToString("dd-MM-yyyy");
-                            var endDate = reader.GetDateTime(reader.GetOrdinal("ActiveEndDate")).ToString("dd-MM-yyyy");
+                            var actDate = reader.GetDateTime(reader.GetOrdinal("ActiveStartDate")).ToString("MM-dd-yyyy");
+                            var endDate = reader.GetDateTime(reader.GetOrdinal("ActiveEndDate")).ToString("MM-dd-yyyy");
 
                             item = new Item()
                             {

@@ -24,29 +24,12 @@ namespace GeocachingExercise.Controllers
         public IActionResult getActiveItems(int cacheId)
         {
             var todayDate = DateTime.Today;
-            try
-            {
-                return Ok(_itemRepo.GetActiveItems(todayDate, cacheId));
-            }
-            catch
-            {
-                return NotFound();
-            }
+            return Ok(_itemRepo.GetActiveItems(todayDate, cacheId));
         }
 
         [HttpPost]
         public IActionResult AddItem(Item item)
         {
-
-            DateTime tmpDate = DateTime.ParseExact(item.ActiveStartDate, "MM/dd/yyyy", null);
-            item.ActiveStartDate = tmpDate.ToString("dd-MM-yyyy");
-            tmpDate = DateTime.ParseExact(item.ActiveEndDate, "MM/dd/yyyy", null);
-            item.ActiveEndDate = tmpDate.ToString("dd-MM-yyyy");
-
-            if (item.CacheId == 0)
-            {
-                item.CacheId = null;
-            }
 
             if (_itemRepo.CacheItemCount(item.CacheId)< 3 )
             {
