@@ -10,6 +10,7 @@ namespace GeocachingExercise.Tests.Mocks
 {
     internal class InMemoryItemRepository : IItemRepository
     {
+        // all methods in this class mock what the item repository does
         private readonly List<Item> _data;
 
         public List<Item> InternalData

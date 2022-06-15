@@ -6,6 +6,7 @@ using GeocachingExercise.Tests.Mocks;
 using GeocachingExercise.Controllers;
 using Microsoft.AspNetCore.Mvc;
 using System.Linq;
+using System.ComponentModel.DataAnnotations;
 
 namespace GeocachingExercise.Tests
 {
@@ -55,6 +56,27 @@ namespace GeocachingExercise.Tests
         [Fact]
         public void Post_Adds_New_Item()
         {
+            //arrange
+            var itemCount = 5;
+            var items = CreateTestItems(itemCount);
+
+            var repo = new InMemoryItemRepository(items);
+            var controller = new ItemController(repo);
+
+            //act
+            var newItem = new Item()
+            {
+                Name = "test",
+                CacheId = 1,
+                ActiveStartDate = DateTime.Today.AddDays(-5).ToString(),
+                ActiveEndDate = DateTime.Today.AddDays(2).ToString(),
+            };
+
+          controller.AddItem(newItem);
+
+            // Assert
+            Assert.Equal(itemCount + 1, repo.InternalData.Count);
+
 
         }
 
@@ -127,7 +149,7 @@ namespace GeocachingExercise.Tests
             var itemToUpdate = new Item()
             {
                 Id = testItemId,
-                Name = "test",
+                Name = "puttest",
                 CacheId = 2,
                 ActiveStartDate = DateTime.Today.AddDays(-5).ToString(),
                 ActiveEndDate = DateTime.Today.AddDays(2).ToString(),
@@ -170,23 +192,103 @@ namespace GeocachingExercise.Tests
         [Fact]
         public void Post_Item_Names_If_Not_Unique_Will_Return_Bad_Request()
         {
+            //arrange
+            var itemCount = 5;
+            var items = CreateTestItems(itemCount);
+            items[0].Name = "test 1";
+
+            var repo = new InMemoryItemRepository(items);
+            var controller = new ItemController(repo);
+
+            //act
+
+            var newItem = new Item()
+            {
+                Name = "test 1",
+                CacheId = 4,
+                ActiveStartDate = DateTime.Today.AddDays(22).ToString(),
+                ActiveEndDate = DateTime.Today.AddDays(95).ToString(),
+            };
+
+            var result = controller.AddItem(newItem);
+            
+
+            //assert
+            Assert.IsType<BadRequestResult>(result);
 
         }
 
         [Fact]
         public void Post_Item_Names_If_Over_Fifty_Characters_Will_Return_Bad_Request()
         {
+            //arrange
+            var itemCount = 5;
+            var items = CreateTestItems(itemCount);
 
+            var repo = new InMemoryItemRepository(items);
+            var controller = new ItemController(repo);
+
+            //act
+
+            var newItem = new Item()
+            {
+                Name = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                CacheId = 4,
+                ActiveStartDate = DateTime.Today.AddDays(22).ToString(),
+                ActiveEndDate = DateTime.Today.AddDays(95).ToString(),
+            };
+
+            var result = controller.AddItem(newItem);
+
+            //assert
+            Assert.IsType<BadRequestResult>(result);
         }
 
         [Fact]
         public void Post_Item_Names_If_Not_Only_Consisting_Of_Numbers_Letters_Or_Spaces_Will_Return_Bad_Request()
         {
+            //arrange
+            var itemCount = 5;
+            var items = CreateTestItems(itemCount);
+
+            var repo = new InMemoryItemRepository(items);
+            var controller = new ItemController(repo);
+
+            //act
+
+            var newItem = new Item()
+            {
+                Name = "$",
+                CacheId = 4,
+                ActiveStartDate = DateTime.Today.AddDays(22).ToString(),
+                ActiveEndDate = DateTime.Today.AddDays(95).ToString(),
+            };
+
+            var result = controller.AddItem(newItem);
+
+            //assert
+            Assert.IsType<BadRequestResult>(result);
 
         }
 
+       //was a method I was using to test out a possible solution for the failed tests
+       /*
+        [Fact]
+        public void validationTest()
+        {
+            var newItem = new Item()
+            {
+                Name = "$",
+                CacheId = 4,
+                ActiveStartDate = DateTime.Today.AddDays(22).ToString(),
+                ActiveEndDate = DateTime.Today.AddDays(95).ToString(),
+            };
 
+            Assert.True(ValidateModel(newItem).Any(i => i.ErrorMessage.Contains("Name too long (beyond 50 characters)")));
+        }
+       */
 
+        //creates a test list of items
         private List<Item> CreateTestItems(int count)
         {
             var items = new List<Item>();
@@ -195,7 +297,7 @@ namespace GeocachingExercise.Tests
                 items.Add(new Item()
                 {
                     Id = i,
-                    Name = $"Name {i}",
+                    Name = $"test {i}",
                     ActiveStartDate = DateTime.Today.AddDays(-new Random().NextDouble()).ToString(),
                     ActiveEndDate = DateTime.Today.ToString(),
                     CacheId = i,
@@ -205,6 +307,7 @@ namespace GeocachingExercise.Tests
             return items;
         }
 
+        //creates a test list of items that all belong to the same cache
         private List<Item> CreateTestItemsOfParticularCache(int id)
         {
             var items = new List<Item>();
@@ -232,7 +335,7 @@ namespace GeocachingExercise.Tests
             items.Add(new Item()
             {
                 Id = 3,
-                Name = $"Name",
+                Name = $"test",
                 ActiveStartDate = DateTime.Today.AddDays(1).ToString(),
                 ActiveEndDate = DateTime.Today.AddDays(8).ToString(),
                 CacheId = id,
@@ -241,5 +344,16 @@ namespace GeocachingExercise.Tests
 
             return items;
         }
+
+        //ignore this. was a solution I was attempting to implement from stack overflow
+        /*
+        private IList<ValidationResult> ValidateModel(object model)
+        {
+            var validationResults = new List<ValidationResult>();
+            var ctx = new ValidationContext(model, null, null);
+            Validator.TryValidateObject(model, ctx, validationResults, true);
+            return validationResults;
+        }
+        */
     }
 }

@@ -30,8 +30,10 @@ namespace GeocachingExercise.Controllers
         [HttpPost]
         public IActionResult AddItem(Item item)
         {
+            //this try catch block catches when an item name is not unique (constraint set up in the sql) and will return bad request
             try
             {
+                // checks to see if the cache you are assigning the item to isnt already full
                 if (_itemRepo.CacheItemCount(item.CacheId) < 3)
                 {
                     _itemRepo.AddItem(item);
@@ -49,6 +51,7 @@ namespace GeocachingExercise.Controllers
         [HttpPut("{itemId}")]
         public IActionResult MoveItem (int itemId, Item item)
         {
+            //determines whether cache is already full and whether item is active
             if (_itemRepo.CacheItemCount(item.CacheId) < 3 && DateTime.Parse(item.ActiveStartDate) <DateTime.Today && DateTime.Parse(item.ActiveEndDate) > DateTime.Today)
             {
                 _itemRepo.MoveItem(itemId, item.CacheId);
@@ -60,6 +63,7 @@ namespace GeocachingExercise.Controllers
         [HttpGet("{id}")]
         public IActionResult GetById(int id)
         {
+            //makes sure item exists, otherwise returns not found
             try
             {
                 return Ok(_itemRepo.getItemById(id));

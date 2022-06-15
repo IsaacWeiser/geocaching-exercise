@@ -28,6 +28,7 @@ namespace GeocachingExercise.Repositories
 
                 using (var cmd = conn.CreateCommand())
                 {
+                    // this query gets items that have the specified cache id and are within the active date range
                     cmd.CommandText = @"SELECT Id, Name, CacheId, ActiveStartDate, ActiveEndDate FROM Item
                                          WHERE ((ActiveStartDate <= @today) AND (ActiveEndDate >= @today)) AND (CacheId = @cacheId)";
 
@@ -60,6 +61,7 @@ namespace GeocachingExercise.Repositories
 
         public void AddItem(Item item)
         {
+            //this code handles whether the user inputs the date in mm-dd-yyyy or mm/dd/yyyy format
            if (!Regex.IsMatch(item.ActiveStartDate, "^[0-9][0-9]-[0-9][0-9]-[0-9][0-9][0-9][0-9]$"))
             {
                 DateTime tmpDate = DateTime.ParseExact(item.ActiveStartDate, "MM/dd/yyyy", null);
@@ -72,7 +74,7 @@ namespace GeocachingExercise.Repositories
                 item.ActiveEndDate = tmpDate.ToString("MM-dd-yyyy");
             }
                 
-
+            // if the user leaves the cache id as zero it will change the value to zero
             if (item.CacheId == 0)
             {
                 item.CacheId = null;
@@ -84,6 +86,8 @@ namespace GeocachingExercise.Repositories
 
                 using (var cmd = conn.CreateCommand())
                 {
+                    //query to insert new item into db
+                    // CacheId checks if its value is null and whether to set it to dbnull.value
                     cmd.CommandText = @" INSERT INTO Item ( Name, CacheId, ActiveStartDate, ActiveEndDate)
                                         OUTPUT INSERTED.ID
                                         VALUES (@name, @cacheId, @activeStartDate, @activeEndDate)";
@@ -105,6 +109,7 @@ namespace GeocachingExercise.Repositories
                 conn.Open();
                 using (var cmd = conn.CreateCommand())
                 {
+                    //this query alters the cache id of the specified item
                     cmd.CommandText = @"
                         UPDATE Item
                            SET
@@ -121,6 +126,7 @@ namespace GeocachingExercise.Repositories
 
         public int CacheItemCount(int? cacheId)
         {
+            //determines whether its passed an actual cache value was passed to it
             if (cacheId == null )
             {
                 return 0;
@@ -132,6 +138,7 @@ namespace GeocachingExercise.Repositories
 
                 using (var cmd = conn.CreateCommand())
                 {
+                    //query counts the number of items assigned to a particular cache
                     cmd.CommandText = @"SELECT Count(CacheId) AS NumOfItems FROM Item WHERE CacheId = @cacheId";
                     cmd.Parameters.AddWithValue("@cacheId", cacheId);
 
@@ -158,6 +165,7 @@ namespace GeocachingExercise.Repositories
 
                 using (var cmd = conn.CreateCommand())
                 {
+                    // query selects the item based on its id
                     cmd.CommandText = @"select * from Item WHERE Id = @id";
                     cmd.Parameters.AddWithValue("@id", id);
 
@@ -167,7 +175,7 @@ namespace GeocachingExercise.Repositories
                     {
                         if (reader.Read())
                         {
-                        
+                            // converts the date to a string so it can be fed into the model
                             var actDate = reader.GetDateTime(reader.GetOrdinal("ActiveStartDate")).ToString("MM-dd-yyyy");
                             var endDate = reader.GetDateTime(reader.GetOrdinal("ActiveEndDate")).ToString("MM-dd-yyyy");
 
