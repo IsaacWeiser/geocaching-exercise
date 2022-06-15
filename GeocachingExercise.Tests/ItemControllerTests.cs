@@ -5,6 +5,7 @@ using Xunit;
 using GeocachingExercise.Tests.Mocks;
 using GeocachingExercise.Controllers;
 using Microsoft.AspNetCore.Mvc;
+using System.Linq;
 
 namespace GeocachingExercise.Tests
 {
@@ -50,6 +51,141 @@ namespace GeocachingExercise.Tests
             Assert.All(actualList, i => Assert.True(i.Id <3));
 
         }
+
+        [Fact]
+        public void Post_Adds_New_Item()
+        {
+
+        }
+
+        [Fact]
+        public void Post_Returns_Bad_Request_When_Its_Cache_Has_Three_Items()
+        {
+            //arrange
+            var items = CreateTestItemsOfParticularCache(1);
+
+            var repo = new InMemoryItemRepository(items);
+            var controller = new ItemController(repo);
+
+            //act
+            var newItem = new Item()
+            {
+                Name = "test",
+                CacheId = 1,
+                ActiveStartDate = DateTime.Today.AddDays(-5).ToString(),
+                ActiveEndDate = DateTime.Today.AddDays(2).ToString(),
+            };
+
+            var result =controller.AddItem(newItem);
+
+            //Assert
+            Assert.IsType<BadRequestResult>(result);
+
+        }
+
+        [Fact]
+        public void Put_Reassigns_The_Cache_Id_Of_The_Item()
+        {
+            //arrange
+            var testItemId = 27;
+            var items = CreateTestItems(5);
+            items[0].Id = testItemId;
+
+            var repo = new InMemoryItemRepository(items);
+            var controller = new ItemController(repo);
+
+            var itemToUpdate = new Item()
+            {
+                Id = testItemId,
+                Name = "test",
+                CacheId = 40,
+                ActiveStartDate = DateTime.Today.AddDays(-5).ToString(),
+                ActiveEndDate = DateTime.Today.AddDays(2).ToString(),
+            };
+
+            //act
+            controller.MoveItem(testItemId, itemToUpdate);
+
+            //Assert
+            var itemFromDb = repo.InternalData.FirstOrDefault(i => i.Id == testItemId);
+            Assert.NotNull(itemFromDb);
+
+            Assert.Equal(40, itemFromDb.CacheId);
+        }
+
+        [Fact]
+        public void Put_Returns_Bad_Request_When_Reassigned_Cache_Is_Full()
+        {
+            //arrange
+            var testItemId = 27;
+            var items = CreateTestItemsOfParticularCache(2);
+            items[0].Id = testItemId;
+
+            var repo = new InMemoryItemRepository(items);
+            var controller = new ItemController(repo);
+
+            var itemToUpdate = new Item()
+            {
+                Id = testItemId,
+                Name = "test",
+                CacheId = 2,
+                ActiveStartDate = DateTime.Today.AddDays(-5).ToString(),
+                ActiveEndDate = DateTime.Today.AddDays(2).ToString(),
+            };
+
+            //act
+            var result = controller.MoveItem(testItemId, itemToUpdate);
+
+            //assert
+            Assert.IsType<BadRequestResult>(result);
+        }
+
+        [Fact]
+        public void Put_Returns_Bad_Request_When_When_Item_To_Be_Moved_Is_Out_Of_Date()
+        {
+            //arrange
+            var testItemId = 27;
+            var items = CreateTestItems(5);
+            items[0].Id = testItemId;
+
+            var repo = new InMemoryItemRepository(items);
+            var controller = new ItemController(repo);
+
+            var itemToUpdate = new Item()
+            {
+                Id = testItemId,
+                Name = "test",
+                CacheId = 2,
+                ActiveStartDate = DateTime.Today.AddDays(22).ToString(),
+                ActiveEndDate = DateTime.Today.AddDays(95).ToString(),
+            };
+
+            //act
+            var result = controller.MoveItem(testItemId, itemToUpdate);
+
+            //assert
+            Assert.IsType<BadRequestResult>(result);
+        }
+
+        [Fact]
+        public void Post_Item_Names_If_Not_Unique_Will_Return_Bad_Request()
+        {
+
+        }
+
+        [Fact]
+        public void Post_Item_Names_If_Over_Fifty_Characters_Will_Return_Bad_Request()
+        {
+
+        }
+
+        [Fact]
+        public void Post_Item_Names_If_Not_Only_Consisting_Of_Numbers_Letters_Or_Spaces_Will_Return_Bad_Request()
+        {
+
+        }
+
+
 
         private List<Item> CreateTestItems(int count)
         {

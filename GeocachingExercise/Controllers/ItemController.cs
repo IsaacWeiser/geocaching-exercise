@@ -30,20 +30,26 @@ namespace GeocachingExercise.Controllers
         [HttpPost]
         public IActionResult AddItem(Item item)
         {
-
-            if (_itemRepo.CacheItemCount(item.CacheId)< 3 )
+            try
             {
-                _itemRepo.AddItem(item);
-                return CreatedAtAction("GetById", new { id = item.Id }, item);
-            }
+                if (_itemRepo.CacheItemCount(item.CacheId) < 3)
+                {
+                    _itemRepo.AddItem(item);
+                    return CreatedAtAction("GetById", new { id = item.Id }, item);
+                }
 
-            return BadRequest();
+                return BadRequest();
+            }
+            catch
+            {
+                return BadRequest();
+            }
         }
 
         [HttpPut("{itemId}")]
         public IActionResult MoveItem (int itemId, Item item)
         {
-            if (_itemRepo.CacheItemCount(item.CacheId) < 3)
+            if (_itemRepo.CacheItemCount(item.CacheId) < 3 && DateTime.Parse(item.ActiveStartDate) <DateTime.Today && DateTime.Parse(item.ActiveEndDate) > DateTime.Today)
             {
                 _itemRepo.MoveItem(itemId, item.CacheId);
                 return Ok(_itemRepo.getItemById(itemId));
