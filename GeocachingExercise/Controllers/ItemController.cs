@@ -52,7 +52,7 @@ namespace GeocachingExercise.Controllers
         public IActionResult MoveItem (int itemId, Item item)
         {
             //determines whether cache is already full and whether item is active
-            if (_itemRepo.CacheItemCount(item.CacheId) < 3 && DateTime.Parse(item.ActiveStartDate) <DateTime.Today && DateTime.Parse(item.ActiveEndDate) > DateTime.Today)
+            if (_itemRepo.CacheItemCount(item.CacheId) < 3 && DateTime.Parse(_itemRepo.getItemById(itemId).ActiveStartDate) <DateTime.Today && DateTime.Parse(_itemRepo.getItemById(itemId).ActiveEndDate) > DateTime.Today)
             {
                 _itemRepo.MoveItem(itemId, item.CacheId);
                 return Ok(_itemRepo.getItemById(itemId));

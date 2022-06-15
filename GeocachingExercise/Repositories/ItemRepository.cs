@@ -179,11 +179,16 @@ namespace GeocachingExercise.Repositories
                             var actDate = reader.GetDateTime(reader.GetOrdinal("ActiveStartDate")).ToString("MM-dd-yyyy");
                             var endDate = reader.GetDateTime(reader.GetOrdinal("ActiveEndDate")).ToString("MM-dd-yyyy");
 
+                            int? cacheIdValue = null;
+                            if (!reader.IsDBNull(reader.GetOrdinal("CacheId")))
+                            {
+                                cacheIdValue = reader.GetInt32(reader.GetOrdinal("CacheId"));
+                            }
                             item = new Item()
                             {
                                 Id = reader.GetInt32(reader.GetOrdinal("Id")),
                                 Name = reader.GetString(reader.GetOrdinal("Name")),
-                                CacheId = reader.GetInt32(reader.GetOrdinal("CacheId")),
+                                CacheId = cacheIdValue,
                                 ActiveStartDate = actDate ,
                                 ActiveEndDate = endDate
                             };
